@@ -1,21 +1,22 @@
 package client
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"mri/whatsapp-client-message/handler/service"
 	"mri/whatsapp-client-message/models"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 	var param models.ParamSendMessage
-	errRequest := c.BindJSON(&param)
+	errRequest := c.Bind(&param)
 	if errRequest != nil {
 		c.JSON(400, models.CommonResponse{
-			Code:       400,
-			IsSuccess:  false,
-			Message:    "Parameter can't empty " + errRequest.Error(),
+			Code:      400,
+			IsSuccess: false,
+			Message:   "Parameter can't empty " + errRequest.Error(),
 		})
 		return
 	}

@@ -1,6 +1,6 @@
 package models
 
 type ParamSendMessage struct {
-	Msisdn string `json:"msisdn" binding:"required"`
-	Message string `json:"message" binding:"required"`
+	Msisdn  string `form:"msisdn" json:"msisdn"`
+	Message string `form:"message" json:"message"`
 }

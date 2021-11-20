@@ -43,11 +43,10 @@ func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, erro
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
-	recLog.WriteLog(recLog.MessageLogWithDate("Err send: " + err.Error()))
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
-		recLog.WriteLog(recLog.MessageLogWithDate("Error send message: " + err.Error()))
+		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
