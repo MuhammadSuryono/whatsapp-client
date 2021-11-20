@@ -14,17 +14,16 @@ type IWhatsappClient interface {
 }
 
 type WhatsappHandler struct {
-	Token string
+	Token   string
 	BaseUrl string
 }
 
 func NewWhatsappClientHandler(baseUrl, token string) IWhatsappClient {
 	return &WhatsappHandler{
-		Token: token,
+		Token:   token,
 		BaseUrl: baseUrl,
 	}
 }
-
 
 func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, error) {
 	recLog := logs.NewLog()
@@ -40,10 +39,11 @@ func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, erro
 	client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, apiUrl, strings.NewReader(dataPost.Encode()))
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer " + wa.Token)
+	req.Header.Add("Authorization", "Bearer "+wa.Token)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
+	recLog.WriteLog(recLog.MessageLogWithDate("Err send: " + err.Error()))
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
