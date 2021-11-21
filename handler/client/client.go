@@ -4,10 +4,10 @@ import "github.com/gin-gonic/gin"
 
 type IClientHandlerWhatsapp interface {
 	SendMessage(c *gin.Context)
+	SendDocumentMessage(c *gin.Context)
 }
 
 type ClientHandlerWhatsapp struct {
-
 }
 
 func NewClientHandlerWhatsapp() IClientHandlerWhatsapp {

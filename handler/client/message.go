@@ -20,25 +20,45 @@ func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 	}
 
 	apiClientWa := service.NewWhatsappClientHandler()
-	isSended, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
-	if err != nil {
-		log.Println("Info Error:", err.Error())
-	}
+	go func() {
+		_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
+		if err != nil {
+			log.Println("Info Error:", err.Error())
+		}
+	}()
 
-	if isSended {
-		c.JSON(200, models.CommonResponse{
-			Code:      200,
-			IsSuccess: true,
-			Message:   "Success send message to " + param.Msisdn,
-			Data:      nil,
+	c.JSON(200, models.CommonResponse{
+		Code:      200,
+		IsSuccess: true,
+		Message:   "Success send message to " + param.Msisdn,
+		Data:      nil,
+	})
+}
+
+func (cl *ClientHandlerWhatsapp) SendDocumentMessage(c *gin.Context) {
+	var param models.ParamSendDocument
+	errRequest := c.Bind(&param)
+	if errRequest != nil {
+		c.JSON(400, models.CommonResponse{
+			Code:      400,
+			IsSuccess: false,
+			Message:   "Parameter can't empty " + errRequest.Error(),
 		})
 		return
 	}
 
-	c.JSON(500, models.CommonResponse{
-		Code:      500,
+	apiClientWa := service.NewWhatsappClientHandler()
+	go func() {
+		_, err := apiClientWa.SendMessageWithDocument(param.Msisdn, param.Message, param.DocumentLink)
+		if err != nil {
+			log.Println("Info Error:", err.Error())
+		}
+	}()
+
+	c.JSON(200, models.CommonResponse{
+		Code:      200,
 		IsSuccess: true,
-		Message:   "Failed send message to " + param.Msisdn,
+		Message:   "Success send message to " + param.Msisdn,
 		Data:      nil,
 	})
 }
