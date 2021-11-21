@@ -71,6 +71,7 @@ func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string,
 	recLog.WriteLog(recLog.MessageLogWithDate("Host sending: " + apiUrl))
 	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
 	recLog.WriteLog(recLog.MessageLogWithDate(message))
+	recLog.WriteLog(recLog.MessageLogWithDate(urlFile))
 
 	client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, apiUrl, payload)
