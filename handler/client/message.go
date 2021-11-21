@@ -1,12 +1,10 @@
 package client
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"mri/whatsapp-client-message/handler/service"
 	"mri/whatsapp-client-message/models"
-	"os"
-
-	"github.com/gin-gonic/gin"
 )
 
 func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
@@ -21,7 +19,7 @@ func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 		return
 	}
 
-	apiClientWa := service.NewWhatsappClientHandler(os.Getenv("WA_SENDER_HOST"), os.Getenv("WA_SENDER_TOKEN"))
+	apiClientWa := service.NewWhatsappClientHandler()
 	isSended, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
 	if err != nil {
 		log.Println("Info Error:", err.Error())

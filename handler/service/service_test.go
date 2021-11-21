@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -14,8 +13,8 @@ func TestSendMessageWA(t *testing.T) {
 	if errLoadEnv != nil {
 		log.Fatalln("Can't load env")
 	}
-	wa := NewWhatsappClientHandler(os.Getenv("WA_SENDER_HOST"), os.Getenv("WA_SENDER_TOKEN"))
-	status, err := wa.SendMessage("0895355698652", "Test from api golang")
+	wa := NewWhatsappClientHandler()
+	status, err := wa.SendMessageWithDocument("0895355698652", "Test from api golang", "http://180.211.92.131/dev-budget/document/yyuwQ73pQXEg2LF.pdf")
 	if err != nil {
 		log.Println("Info Error:", err.Error())
 	}

@@ -20,7 +20,7 @@ func NewLog() ILog {
 }
 
 func (l *LogHandler) WriteLog(messageLog interface{}) {
-	filename := fmt.Sprintf("%s-%d-%02d-%02d", "../logs/logs/log", time.Now().Year(), time.Now().Month(), time.Now().Day())
+	filename := fmt.Sprintf("%s-%d-%02d-%02d", "logs/logs/log", time.Now().Year(), time.Now().Month(), time.Now().Day())
 	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Sprintf("error opening file: %v", err)
