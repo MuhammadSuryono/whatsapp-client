@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/kr/pretty"
 	"log"
 	"mri/whatsapp-client-message/handler/service"
 	"mri/whatsapp-client-message/models"
@@ -46,7 +47,7 @@ func (cl *ClientHandlerWhatsapp) SendDocumentMessage(c *gin.Context) {
 		})
 		return
 	}
-
+	pretty.Println(param)
 	apiClientWa := service.NewWhatsappClientHandler()
 	go func() {
 		_, err := apiClientWa.SendMessageWithDocument(param.Msisdn, param.Message, param.DocumentLink)
