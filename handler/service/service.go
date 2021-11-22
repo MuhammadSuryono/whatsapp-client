@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
@@ -46,13 +47,21 @@ func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, erro
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	resp, err := client.Do(req)
+	if resp == nil {
+		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
+		recLog.WriteToDbLog(msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
+	}
+
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
+		recLog.WriteToDbLog(msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
+	recLog.WriteToDbLog(msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
 
@@ -78,12 +87,20 @@ func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string,
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	resp, err := client.Do(req)
+	if resp == nil {
+		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
+		recLog.WriteToDbLog(msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
+	}
+
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
+		recLog.WriteToDbLog(msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
+	recLog.WriteToDbLog(msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
