@@ -11,6 +11,7 @@ type CommonResponse struct {
 
 type LogWhatsapp struct {
 	Id           int64     `json:"id" gorm:"primaryKey"`
+	Provider     string    `json:"provider"`
 	To           string    `json:"to"`
 	Message      string    `json:"message" gorm:"TEXT"`
 	DocumentLink string    `json:"document_link" gorm:"TEXT"`
