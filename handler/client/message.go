@@ -1,11 +1,12 @@
 package client
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/kr/pretty"
 	"log"
 	"mri/whatsapp-client-message/handler/service"
 	"mri/whatsapp-client-message/models"
+
+	"github.com/gin-gonic/gin"
+	"github.com/kr/pretty"
 )
 
 func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
@@ -22,7 +23,7 @@ func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 
 	apiClientWa := service.NewWhatsappClientHandler()
 	go func() {
-		_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
+		_, err := apiClientWa.SendMessageOtherProvider(param.Msisdn, param.Message)
 		if err != nil {
 			log.Println("Info Error:", err.Error())
 		}
@@ -50,7 +51,7 @@ func (cl *ClientHandlerWhatsapp) SendDocumentMessage(c *gin.Context) {
 	pretty.Println(param)
 	apiClientWa := service.NewWhatsappClientHandler()
 	go func() {
-		_, err := apiClientWa.SendMessageWithDocument(param.Msisdn, param.Message, param.DocumentLink)
+		_, err := apiClientWa.SendMessageOtherProvider(param.Msisdn, param.Message)
 		if err != nil {
 			log.Println("Info Error:", err.Error())
 		}

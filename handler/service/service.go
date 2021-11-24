@@ -16,6 +16,7 @@ import (
 type IWhatsappClient interface {
 	SendMessage(msidn string, message string) (bool, error)
 	SendMessageWithDocument(msidn string, message string, urlFile string) (bool, error)
+	SendMessageOtherProvider(msidn string, message string) (bool, error)
 }
 
 type WhatsappHandler struct {
