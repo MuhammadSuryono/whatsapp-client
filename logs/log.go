@@ -46,14 +46,15 @@ func (l *LogHandler) WriteToDbLog(provider, to, message, documentLink string, st
 	}
 
 	logs := models.LogWhatsapp{
-		Provider:     provider,
-		To:           to,
-		Message:      message,
-		Response:     response,
-		Errors:       error,
-		StatusCode:   statusCode,
-		Status:       status,
-		DocumentLink: documentLink,
+		ApplicationCode: "budget-001",
+		Provider:        provider,
+		To:              to,
+		Message:         message,
+		Response:        response,
+		Errors:          error,
+		StatusCode:      statusCode,
+		Status:          status,
+		DocumentLink:    documentLink,
 	}
 
 	db.Connection.Create(&logs)
