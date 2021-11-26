@@ -2,10 +2,10 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"mri/whatsapp-client-message/logs"
 	"net/http"
 	"net/url"
@@ -27,88 +27,89 @@ type WhatsappHandler struct {
 func NewWhatsappClientHandler() IWhatsappClient {
 	return &WhatsappHandler{
 		Token:   os.Getenv("NUSA_GATEWAY_TOKEN"),
-		BaseUrl: os.Getenv("NUSA_GATEWAY_HOST"),
+		BaseUrl: os.Getenv("CORE_WA_API_HOST"),
 	}
 }
 
 func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, error) {
 	recLog := logs.NewLog()
 
-	apiUrl := fmt.Sprintf("%s/send-message.php", wa.BaseUrl)
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-	_ = writer.WriteField("token", wa.Token)
-	_ = writer.WriteField("phone", msidn)
-	_ = writer.WriteField("message", message)
-	_ = writer.Close()
+	apiUrl := fmt.Sprintf("%s/message/text", wa.BaseUrl)
+	payload := map[string]interface{}{
+		"msisdn": msidn,
+		"content": message,
+	}
 
+	body, _ := json.Marshal(payload)
 	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
 	recLog.WriteLog(recLog.MessageLogWithDate(message))
 
 	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodPost, apiUrl, payload)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req, _ := http.NewRequest(http.MethodPost, apiUrl, bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
-		//return false, errors.New("null response: " + fmt.Sprintf("%v", err))
-		return wa.SendMessageOtherProvider(msidn, message)
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
+		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		//return false, err
 		return wa.SendMessageOtherProvider(msidn, message)
 	}
 
-	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
 
 func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string, urlFile string) (bool, error) {
 	recLog := logs.NewLog()
 
-	apiUrl := fmt.Sprintf("%s/send-document.php", wa.BaseUrl)
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-	_ = writer.WriteField("token", wa.Token)
-	_ = writer.WriteField("phone", msidn)
-	_ = writer.WriteField("document", urlFile)
-	_ = writer.WriteField("caption", message)
-	_ = writer.Close()
+	apiUrl := fmt.Sprintf("%s/message/document", wa.BaseUrl)
+	payload := map[string]interface{}{
+		"msisdn": msidn,
+		"content": message,
+		"url_file": urlFile,
+	}
+
+	body, _ := json.Marshal(payload)
+	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
+	recLog.WriteLog(recLog.MessageLogWithDate(message))
+
+	client := &http.Client{}
+	req, _ := http.NewRequest(http.MethodPost, apiUrl, bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 
 	recLog.WriteLog(recLog.MessageLogWithDate("Host sending: " + apiUrl))
 	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
 	recLog.WriteLog(recLog.MessageLogWithDate(message))
 	recLog.WriteLog(recLog.MessageLogWithDate(urlFile))
 
-	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodPost, apiUrl, payload)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
-		//return false, errors.New("null response: " + fmt.Sprintf("%v", err))
-		return wa.SendMessageOtherProvider(msidn, message)
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
+		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
-		//return false, err
-		return wa.SendMessageOtherProvider(msidn, message)
+		return false, err
+		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
-	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
 
