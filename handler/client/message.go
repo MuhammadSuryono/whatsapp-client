@@ -23,7 +23,7 @@ func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 
 	apiClientWa := service.NewWhatsappClientHandler()
 	go func() {
-		_, err := apiClientWa.SendMessageOtherProvider(param.Msisdn, param.Message)
+		_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
 		if err != nil {
 			log.Println("Info Error:", err.Error())
 		}
@@ -51,7 +51,7 @@ func (cl *ClientHandlerWhatsapp) SendDocumentMessage(c *gin.Context) {
 	pretty.Println(param)
 	apiClientWa := service.NewWhatsappClientHandler()
 	go func() {
-		_, err := apiClientWa.SendMessageOtherProvider(param.Msisdn, param.Message)
+		_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
 		if err != nil {
 			log.Println("Info Error:", err.Error())
 		}
