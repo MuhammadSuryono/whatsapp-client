@@ -13,6 +13,7 @@ type ILog interface {
 	WriteLog(messageLog interface{})
 	MessageLogWithDate(message string) string
 	WriteToDbLog(provider, to, message, documentLink string, statusCode int, response, error string)
+	WriteToDbLogResend(idMessage int64, status bool)
 }
 
 type LogHandler struct {
@@ -58,4 +59,20 @@ func (l *LogHandler) WriteToDbLog(provider, to, message, documentLink string, st
 	}
 
 	db.Connection.Create(&logs)
+}
+
+func (l *LogHandler) WriteToDbLogResend(idMessage int64, status bool) {
+	logResend := getLogResend(idMessage, status)
+	logResend.CountResend += 1
+	if status {
+		logResend.Status = true
+		logResend.StatusCode = 200
+	}
+	db.Connection.Save(&logResend)
+
+}
+
+func getLogResend(idMessage int64, status bool) (log models.LogWhatsapp) {
+	db.Connection.Where("id = ? AND count_resend <= ?", idMessage, 3).First(&log)
+	return
 }

@@ -20,6 +20,16 @@ type LogWhatsapp struct {
 	Errors          string    `json:"errors" gorm:"TEXT"`
 	StatusCode      int       `json:"status_code"`
 	Status          bool      `json:"status"`
+	CountResend		int	  	  `json:"count_resend" gorm:"DEFAULT:0"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type Config struct {
+	Id              int64     `json:"id" gorm:"primaryKey"`
+	ApplicationCode string    `json:"application_code"`
+	Services		string	  `json:"services"`
+	NeedResend 		bool 	  `json:"need_resend" gorm:"DEFAULT:0"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }

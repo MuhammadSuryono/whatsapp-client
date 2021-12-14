@@ -18,7 +18,7 @@ func TestSendMessageWA(t *testing.T) {
 		log.Fatalln("Can't load env")
 	}
 	wa := NewWhatsappClientNusaGateWayHandler()
-	status, err := wa.SendMessageWithDocument("0895355698652", "Test from api golang", "http://www.africau.edu/images/default/sample.pdf")
+	status, err := wa.SendMessage("089664158657", "Test from api golang")
 	if err != nil {
 		log.Println("Info Error:", err.Error())
 	}
