@@ -53,8 +53,8 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
 		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		defer resp.Body.Close()
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
-		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
@@ -63,9 +63,10 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
-		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
+	defer resp.Body.Close()
+	
 	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
@@ -96,7 +97,6 @@ func (wa *NusaGateWayWhatsappHandler) SendMessageWithDocument(msidn string, mess
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
 		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
-		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
@@ -105,7 +105,6 @@ func (wa *NusaGateWayWhatsappHandler) SendMessageWithDocument(msidn string, mess
 		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
-		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
