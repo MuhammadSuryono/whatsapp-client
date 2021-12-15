@@ -49,7 +49,9 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
 	recLog.WriteLog(recLog.MessageLogWithDate(message))
 
-	client := createHttpClient()
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	req, _ := http.NewRequest(http.MethodPost, apiUrl, payload)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
