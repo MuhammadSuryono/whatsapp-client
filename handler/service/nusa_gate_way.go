@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,9 @@ import (
 	"mri/whatsapp-client-message/logs"
 	"net/http"
 	"os"
+	"time"
+
+	"golang.org/x/net/http2"
 )
 
 type IWhatsappClientNusaGateWay interface {
@@ -45,7 +49,7 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 	recLog.WriteLog(recLog.MessageLogWithDate("Start request send message to " + msidn))
 	recLog.WriteLog(recLog.MessageLogWithDate(message))
 
-	client := &http.Client{}
+	client := createHttpClient()
 	req, _ := http.NewRequest(http.MethodPost, apiUrl, payload)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
@@ -143,4 +147,17 @@ func (wa *NusaGateWayWhatsappHandler) ReSendMessage(msidn string, message string
 
 	recLog.WriteToDbLogResend(idMessage, true)
 	return resp.StatusCode == 200, nil
+}
+
+func createHttpClient() (*http.Client) {
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		MaxIdleConnsPerHost: 20,
+	}
+	http2.ConfigureTransport(transport)
+	return httpClient
 }
