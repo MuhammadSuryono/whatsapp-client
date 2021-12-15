@@ -53,7 +53,6 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
 		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
-		defer resp.Body.Close()
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 	}
 
@@ -65,8 +64,6 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 		return false, err
 	}
 
-	defer resp.Body.Close()
-	
 	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
 	return resp.StatusCode == 200, nil
 }
