@@ -25,6 +25,8 @@ func main() {
 	{
 		api.POST("/send-notification-message", handlerClient.SendMessage)
 		api.POST("/send-notification-document", handlerClient.SendDocumentMessage)
+
+		api.GET("/logs", handlerClient.GetLogWhatsapp)
 	}
 
 	// resendFailed()

@@ -33,3 +33,9 @@ type Config struct {
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
+
+type ResponseListLog struct {
+	TotalData	int64 		`json:"total_data"`
+	Records		interface{} `json:"records"`
+	LastUpdate  time.Time	`json:"last_update"`
+}
