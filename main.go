@@ -29,8 +29,18 @@ func main() {
 		api.GET("/logs", handlerClient.GetLogWhatsapp)
 	}
 
-	// resendFailed()
+	resendFailed()
 	server.Run()
+}
+
+func sendWaPing() bool {
+	apiClientWa := service.NewWhatsappClientNusaGateWayHandler()
+	_, err := apiClientWa.SendMessage("085810282263", "CHECKING CONNECTION")
+	if err != nil {
+		log.Println("Info Error:", err.Error())
+	}
+	fmt.Println("SEND PING")
+	return true
 }
 
 func resendFailed()  {
@@ -43,7 +53,7 @@ func resendFailed()  {
 				return
 			case <-pingTicker.C:
 				fmt.Println("INSTANCE RESEND")
-				resend := resend()
+				resend := sendWaPing()
 				if !resend {
 					pingDone <- true
 				}
@@ -59,7 +69,6 @@ func resend() bool {
 	if config.NeedResend {
 		logFaileds := getWhatsappFaileds()
 		for _, logFailed := range logFaileds {
-			fmt.Println("RESEND", logFailed.Id, logFailed.To)
 			apiClientWa := service.NewWhatsappClientNusaGateWayHandler()
 			_, err := apiClientWa.ReSendMessage(logFailed.To, logFailed.Message, logFailed.Id)
 			if err != nil {
