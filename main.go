@@ -35,15 +35,28 @@ func main() {
 
 func sendWaPing() bool {
 	apiClientWa := service.NewWhatsappClientNusaGateWayHandler()
-	_, err := apiClientWa.SendMessage("085810282263", "CHECKING CONNECTION")
+	dateNow := time.Now().Local().String()
+	_, err := apiClientWa.SendMessage("085810282263", "CHECKING CONNECTION "+dateNow)
 	if err != nil {
 		log.Println("Info Error:", err.Error())
+		email := service.NewEmailHandler()
+		param := service.ParamSendMessage{
+			Recipients: "it.mri@mri-research-ind.com",
+			Subject:    "Notifikasi Error " + dateNow,
+			Body:       fmt.Sprintf("Infor Error: %v", err.Error()),
+		}
+		status, err := email.SendEmail(param)
+		if err != nil {
+			log.Println("Info Error:", err.Error())
+		}
+
+		fmt.Println(status)
 	}
 	fmt.Println("SEND PING")
 	return true
 }
 
-func resendFailed()  {
+func resendFailed() {
 	pingTicker := time.NewTicker(30 * time.Minute)
 	pingDone := make(chan bool)
 	go func() {

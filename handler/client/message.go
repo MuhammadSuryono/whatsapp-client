@@ -4,6 +4,7 @@ import (
 	"log"
 	"mri/whatsapp-client-message/handler/service"
 	"mri/whatsapp-client-message/models"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
@@ -22,10 +23,19 @@ func (cl *ClientHandlerWhatsapp) SendMessage(c *gin.Context) {
 	}
 
 	apiClientWa := service.NewWhatsappClientNusaGateWayHandler()
+	provider := os.Getenv("PROVIDER")
 	go func() {
-		_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
-		if err != nil {
-			log.Println("Info Error:", err.Error())
+		if provider == "OTHER" {
+			apiClientWaOther := service.NewWhatsappClientHandler()
+			_, err := apiClientWaOther.SendMessageOtherProvider(param.Msisdn, param.Message)
+			if err != nil {
+				log.Println("Info Error:", err.Error())
+			}
+		} else {
+			_, err := apiClientWa.SendMessage(param.Msisdn, param.Message)
+			if err != nil {
+				log.Println("Info Error:", err.Error())
+			}
 		}
 	}()
 

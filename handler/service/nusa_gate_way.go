@@ -3,11 +3,13 @@ package service
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"mri/whatsapp-client-message/logs"
+	"mri/whatsapp-client-message/models"
 	"net/http"
 	"os"
 	"time"
@@ -33,8 +35,6 @@ func NewWhatsappClientNusaGateWayHandler() IWhatsappClientNusaGateWay {
 	}
 }
 
-
-
 func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) (bool, error) {
 	recLog := logs.NewLog()
 
@@ -56,25 +56,29 @@ func (wa *NusaGateWayWhatsappHandler) SendMessage(msidn string, message string) 
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err), models.ResponseWhatsappProvider{})
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
+
+	var res models.ResponseWhatsappProvider
+	_ = json.Unmarshal(buf, &res)
 	if err != nil {
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
-	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 	return resp.StatusCode == 200, nil
 }
 
 func (wa *NusaGateWayWhatsappHandler) SendMessageWithDocument(msidn string, message string, urlFile string) (bool, error) {
 	recLog := logs.NewLog()
 
+	var res models.ResponseWhatsappProvider
 	apiUrl := fmt.Sprintf("%s/send-document.php", wa.BaseUrl)
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
@@ -96,19 +100,20 @@ func (wa *NusaGateWayWhatsappHandler) SendMessageWithDocument(msidn string, mess
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err), res)
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
+	_ = json.Unmarshal(buf, &res)
 	if err != nil {
-		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
-	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("NUSA_GATEWAY", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 	return resp.StatusCode == 200, nil
 }
 
@@ -149,13 +154,13 @@ func (wa *NusaGateWayWhatsappHandler) ReSendMessage(msidn string, message string
 	return resp.StatusCode == 200, nil
 }
 
-func createHttpClient() (*http.Client) {
+func createHttpClient() *http.Client {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 	transport := &http.Transport{
-		TLSClientConfig: tlsConfig,
+		TLSClientConfig:     tlsConfig,
 		MaxIdleConnsPerHost: 20,
 	}
 	http2.ConfigureTransport(transport)

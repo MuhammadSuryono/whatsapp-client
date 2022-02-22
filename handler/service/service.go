@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mri/whatsapp-client-message/logs"
+	"mri/whatsapp-client-message/models"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,17 +27,18 @@ type WhatsappHandler struct {
 
 func NewWhatsappClientHandler() IWhatsappClient {
 	return &WhatsappHandler{
-		Token:   os.Getenv("NUSA_GATEWAY_TOKEN"),
-		BaseUrl: os.Getenv("CORE_WA_API_HOST"),
+		Token:   os.Getenv("WA_SENDER_TOKEN"),
+		BaseUrl: os.Getenv("WA_SENDER_HOST"),
 	}
 }
 
 func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, error) {
 	recLog := logs.NewLog()
 
+	var res models.ResponseWhatsappProvider
 	apiUrl := fmt.Sprintf("%s/message/text", wa.BaseUrl)
 	payload := map[string]interface{}{
-		"msisdn": msidn,
+		"msisdn":  msidn,
 		"content": message,
 	}
 
@@ -51,31 +53,33 @@ func (wa *WhatsappHandler) SendMessage(msidn string, message string) (bool, erro
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err), res)
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
+	_ = json.Unmarshal(buf, &res)
 	if err != nil {
-		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		//return false, err
 		return wa.SendMessageOtherProvider(msidn, message)
 	}
 
-	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 	return resp.StatusCode == 200, nil
 }
 
 func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string, urlFile string) (bool, error) {
 	recLog := logs.NewLog()
 
+	var res models.ResponseWhatsappProvider
 	apiUrl := fmt.Sprintf("%s/message/document", wa.BaseUrl)
 	payload := map[string]interface{}{
-		"msisdn": msidn,
-		"content": message,
+		"msisdn":   msidn,
+		"content":  message,
 		"url_file": urlFile,
 	}
 
@@ -95,7 +99,7 @@ func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string,
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, 500, "Null response", fmt.Sprintf("Null response: %v", err), res)
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 		// return wa.SendMessageOtherProvider(msidn, message)
 	}
@@ -103,18 +107,20 @@ func (wa *WhatsappHandler) SendMessageWithDocument(msidn string, message string,
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
-		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 		// return wa.SendMessageOtherProvider(msidn, message)
 	}
 
-	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("CORE_API_WHATSAPP", msidn, message, urlFile, resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 	return resp.StatusCode == 200, nil
 }
 
 func (wa *WhatsappHandler) SendMessageOtherProvider(msidn string, message string) (bool, error) {
 	recLog := logs.NewLog()
+
+	var res models.ResponseWhatsappProvider
 	wa.Token = os.Getenv("WA_SENDER_TOKEN")
 	wa.BaseUrl = os.Getenv("WA_SENDER_HOST")
 
@@ -135,17 +141,17 @@ func (wa *WhatsappHandler) SendMessageOtherProvider(msidn string, message string
 	resp, err := client.Do(req)
 	if resp == nil {
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Null response: %v", err)))
-		recLog.WriteToDbLog("WA_SENDER", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err))
+		recLog.WriteToDbLog("WA_SENDER", msidn, message, "", 500, "Null response", fmt.Sprintf("Null response: %v", err), res)
 		return false, errors.New("null response: " + fmt.Sprintf("%v", err))
 	}
 	buf, _ := ioutil.ReadAll(resp.Body)
 	recLog.WriteLog(recLog.MessageLogWithDate("Resp send: " + string(buf)))
 	if err != nil {
-		recLog.WriteToDbLog("WA_SENDER", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+		recLog.WriteToDbLog("WA_SENDER", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 		recLog.WriteLog(recLog.MessageLogWithDate(fmt.Sprintf("Error send message: %v", err)))
 		return false, err
 	}
 
-	recLog.WriteToDbLog("WA_SENDER", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err))
+	recLog.WriteToDbLog("WA_SENDER", msidn, message, "", resp.StatusCode, string(buf), fmt.Sprintf("Error response: %v", err), res)
 	return resp.StatusCode == 200, nil
 }

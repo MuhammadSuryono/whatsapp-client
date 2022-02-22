@@ -12,7 +12,7 @@ import (
 type ILog interface {
 	WriteLog(messageLog interface{})
 	MessageLogWithDate(message string) string
-	WriteToDbLog(provider, to, message, documentLink string, statusCode int, response, error string)
+	WriteToDbLog(provider, to, message, documentLink string, statusCode int, response, error string, res models.ResponseWhatsappProvider)
 	WriteToDbLogResend(idMessage int64, status bool)
 }
 
@@ -40,7 +40,7 @@ func (l *LogHandler) MessageLogWithDate(message string) string {
 	return fmt.Sprintf("%d-%02d-%02d -> %s", time.Now().Year(), time.Now().Month(), time.Now().Day(), message)
 }
 
-func (l *LogHandler) WriteToDbLog(provider, to, message, documentLink string, statusCode int, response, error string) {
+func (l *LogHandler) WriteToDbLog(provider, to, message, documentLink string, statusCode int, response, error string, res models.ResponseWhatsappProvider) {
 	status := true
 	if statusCode >= 400 {
 		status = false
@@ -51,6 +51,8 @@ func (l *LogHandler) WriteToDbLog(provider, to, message, documentLink string, st
 		Provider:        provider,
 		To:              to,
 		Message:         message,
+		IdMessage:       res.Id,
+		StatusSend:      res.Status,
 		Response:        response,
 		Errors:          error,
 		StatusCode:      statusCode,
